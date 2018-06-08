@@ -1,9 +1,11 @@
 variable "vpn_region" {}
 variable "vpn_profile" {}
 variable "vpn_cidr" {}
+
 variable "cidrs" {
   type = "map"
 }
+
 data "aws_availability_zones" "available" {}
 variable "key_name" {}
 variable "public_key_path" {}

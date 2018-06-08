@@ -1,21 +1,18 @@
-
 ######## --------------------- AWS PROVIDER
 provider "aws" {
   region  = "${var.vpn_region}"
   profile = "${var.vpn_profile}"
 }
 
-
 ######## --------------------- VIRTUAL PRIVATE NETWORK
 resource "aws_vpc" "vpn_vpc" {
   cidr_block           = "${var.vpn_cidr}"
-  enable_dns_hostnames = true  # A boolean flag to enable DNS hostnames in the VPC
+  enable_dns_hostnames = true              # A boolean flag to enable DNS hostnames in the VPC
 
   tags {
     Name = "VPN VPC"
   }
 }
-
 
 ######## --------------------- INTERNET GATEWAY
 resource "aws_internet_gateway" "vpn_igw" {
@@ -25,7 +22,6 @@ resource "aws_internet_gateway" "vpn_igw" {
     Name = "VPN IG"
   }
 }
-
 
 ######## --------------------- ROUTE TABLES
 resource "aws_route_table" "vpn_public_routes" {
@@ -54,7 +50,6 @@ resource "aws_default_route_table" "vpn_private_routes" {
 #   vpc = true
 #   instance = "${aws_instance.vpn_.id}"
 # }
-
 
 ######## --------------------- SUBNET
 resource "aws_subnet" "vpn_public_subnet" {
@@ -90,11 +85,10 @@ resource "aws_route_table_association" "vpn_private_assoc" {
   route_table_id = "${aws_default_route_table.vpn_private_routes.id}"
 }
 
-
 ######## --------------------- SECURITY GROUPS
 resource "aws_security_group" "vpn_default_sg" {
-  name        = "VPN DEFAULT SG"
-  vpc_id      = "${aws_vpc.vpn_vpc.id}"
+  name   = "VPN DEFAULT SG"
+  vpc_id = "${aws_vpc.vpn_vpc.id}"
 
   ingress {
     from_port   = 22
@@ -138,13 +132,12 @@ resource "aws_instance" "vpn" {
   subnet_id              = "${aws_subnet.vpn_public_subnet.id}"
 }
 
-
 ####### Generate an Ansible inventory file
 provisioner "local-exec" {
-    command = <<EOD
+  command = <<EOD
 cat <<EOF > ../ansible/aws_hosts
 [vpn]
 ${aws_instance.vpn.public_ip}
 EOF
 EOD
-  }
+}
