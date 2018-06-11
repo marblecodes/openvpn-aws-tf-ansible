@@ -1,0 +1,33 @@
+port {{ vpn_port }}
+proto udp
+dev tun
+ca ca.crt
+cert {{ ca_key_name }}.crt
+key {{ ca_key_name }}.key
+dh dh2048.pem
+server {{ vpn_network }} {{ vpn_netmask }}
+ifconfig-pool-persist ipp.txt
+
+push block-outside-dns
+push "def1 bypass-dhcp"
+push "dhcp-option DNS {{ vpn_gateway }} "
+
+{% for route in vpn_routes %}
+push "route {{ route }} {{ vpn_netmask }}"
+{% endfor %}
+
+keepalive 10 120
+tls-auth ta.key 0
+key-direction 0
+cipher AES-128-CBC
+auth SHA256
+tls-version-min 1.2
+tls-cipher TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384:TLS-ECDHE-RSA-WITH-AES-256-GCM-SHA384:TLS-DHE-RSA-WITH-AES-256-GCM-SHA384:TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA384:TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA384:TLS-DHE-RSA-WITH-AES-256-CBC-SHA256
+comp-lzo
+user nobody
+group nogroup
+persist-key
+persist-tun
+status openvpn-status.log
+log-append /var/log/openvpn.log
+verb 3

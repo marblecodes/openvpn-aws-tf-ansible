@@ -18,5 +18,5 @@ A declarative way to create an isolated infrastructure in the cloud with openvpn
 `aws iam get-user --profile terraform-vpn`
 
 * Create an keypair for the vpn instance
-` keygen `
+` ssh-keygen -t rsa -C "your.email@example.com" -b 4096 `
 ` chmod 600 ~/.ssh/vpn `

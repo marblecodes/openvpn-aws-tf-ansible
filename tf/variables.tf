@@ -1,6 +1,7 @@
 variable "vpn_region" {}
 variable "vpn_profile" {}
 variable "vpn_cidr" {}
+variable "vpn_port" {}
 
 variable "cidrs" {
   type = "map"

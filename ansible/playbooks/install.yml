@@ -1,0 +1,125 @@
+- name: Install OpenVPN and configure it
+  hosts: vpn
+  user: ubuntu
+  become_method: sudo
+  connection: ssh
+  gather_facts: no
+  vars_files:
+    - ../vpn_vars.yml
+    - ../vpn_tf_vars.yml
+
+  pre_tasks:
+    - name: 'install python2'
+      raw: sudo apt-get -y install python-minimal
+      changed_when: false
+
+
+# ---  Should be role: OpenVPN
+
+  tasks:
+
+    - name: Do an apt-get update & upgrade
+      become: yes
+      apt:
+        upgrade: yes
+        update_cache: yes
+        force_apt_get: yes
+
+    - name: Install required packages
+      become: yes
+      package:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - sudo
+        - git
+        - openssl
+        - dnsmasq
+        - openvpn
+        - easy-rsa
+
+    - name: Enable IPv4 traffic forwarding
+      become: yes
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: 1
+        sysctl_set: yes
+        state: present
+        reload: yes
+
+    - name: Copy OpenVPN configuration file
+      become: yes
+      template:
+        src: openvpn_server.conf.j2
+        dest: /etc/openvpn/{{ ca_key_name }}.conf
+
+    - name: Generate tls-auth key
+      become: yes
+      shell: openvpn --genkey --secret /etc/openvpn/ta.key
+      args:
+        creates: "/etc/openvpn/ta.key"
+
+# --- Should be role: Create server CA
+
+    - name: Create key folder
+      shell: "make-cadir {{ easy_rsa_dir }}"
+      args:
+        creates: "{{ easy_rsa_dir }}"
+
+    - name: Copy vars file
+      template:
+        src: easy_rsa_vars.j2
+        dest: "{{ easy_rsa_dir }}/vars"
+
+    - name: Load the CA vars and clean the key folder
+      shell: ". ./vars; ./clean-all"
+      args:
+        chdir: "{{ easy_rsa_dir }}"
+        creates: "{{ easy_rsa_dir }}/keys/index.txt"
+
+    - name: Generate Diffie-Hellman
+      shell: ". ./vars; ./build-dh"
+      args:
+        chdir: "{{ easy_rsa_dir }}"
+        creates: "{{ easy_rsa_dir }}/keys/dh2048.pem"
+
+    - name: Build the root certificate
+      shell: ". ./vars; ./pkitool --initca"
+      args:
+        chdir: "{{ easy_rsa_dir }}"
+        creates: "{{ easy_rsa_dir }}/keys/ca.key"
+
+    - name: Build the server key pair
+      shell: ". ./vars; ./pkitool --server {{ ca_key_name }}"
+      args:
+        chdir: "{{ easy_rsa_dir }}"
+        creates: "{{ easy_rsa_dir }}/keys/{{ ca_key_name }}.key"
+
+    - name: Copy certification files
+      become: true
+      shell: "cp {{ easy_rsa_dir }}/{{ item }} /etc/openvpn"
+      args:
+        creates: "/etc/openvpn/{{ item }}"
+      with_items:
+        - "ca.crt"
+        - "{{ ca_key_name }}.crt"
+        - "{{ ca_key_name }}.key"
+        - "dh2048.pem"
+
+  # ---- Should be role: Start services
+
+    - name: Start the openvpn service
+      become: yes
+      service:
+        name: "openvpn@{{ ca_key_name }}"
+        enabled: yes
+        state: started
+
+    # TODO try to get Ubuntu docker container working
+    - name: Start the dnsmasq service
+      become: yes
+      service:
+        name: dnsmasq
+        enabled: yes
+        state: started
+

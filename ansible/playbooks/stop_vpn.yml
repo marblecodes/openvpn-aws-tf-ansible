@@ -1,0 +1,17 @@
+- hosts: localhost
+  connection: local
+  remote_user: ubuntu
+  become: no
+  gather_facts: no
+  vars_files:
+    - ../vpn_vars.yml
+    - ../vpn_tf_vars.yml
+
+  tasks:
+  - name: Stop the VPN instance
+    ec2:
+      ec2_url: https://ec2.{{ aws_region }}.amazonaws.com
+      instance_ids: "{{ vpn_instance_id }}"
+      state: stopped
+      wait: True
+      assign_public_ip: yes
