@@ -1,0 +1,24 @@
+client
+dev tun
+proto udp
+remote {{ hostvars['vpn'][0] }} {{ vpn_port }}
+resolv-retry infinite
+nobind
+# user nobody
+# group nobody
+persist-key
+persist-tun
+ca ca.crt
+cert {{ username }}.crt
+key {{ username }}.key
+remote-cert-tls server
+tls-auth ta.key 1
+cipher AES-128-CBC
+auth SHA256
+key-direction 1
+comp-lzo
+verb 3
+
+sndbuf 0
+rcvbuf 0
+setenv opt block-outside-dns

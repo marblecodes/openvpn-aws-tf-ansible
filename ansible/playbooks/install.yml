@@ -33,6 +33,7 @@
       with_items:
         - sudo
         - git
+        - zip
         - openssl
         - dnsmasq
         - openvpn
