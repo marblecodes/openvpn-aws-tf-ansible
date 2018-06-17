@@ -1,6 +1,9 @@
 vpn_netmask: 255.255.255.0
 vpn_network: 10.3.0.0
 
+vpn_routes :
+  - 10.1.0.0 255.255.0.0
+
 easy_rsa_dir: /home/ubuntu/ca
 ca_key_country: 'BE'
 ca_key_province: 'BR'

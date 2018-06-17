@@ -11,9 +11,10 @@ ifconfig-pool-persist ipp.txt
 push block-outside-dns
 push "def1 bypass-dhcp"
 push "dhcp-option DNS {{ vpn_gateway }} "
+push "dhcp-option DNS 8.8.8.8"
 
 {% for route in vpn_routes %}
-push "route {{ route }} {{ vpn_netmask }}"
+push "route {{ route }}"
 {% endfor %}
 
 keepalive 10 120

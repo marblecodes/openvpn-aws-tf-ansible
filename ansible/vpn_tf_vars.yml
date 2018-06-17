@@ -1,6 +1,4 @@
 aws_region: eu-west-3
-vpn_instance_id: i-0392d30b318b099c5
-vpn_routes:
-  - 10.1.3.0
-vpn_gateway: 10.1.1.1
+vpn_instance_id: i-049d22ccf3ab9ee38
+vpn_gateway: 10.1.1.242
 vpn_port: 1194

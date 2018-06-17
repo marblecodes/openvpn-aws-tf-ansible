@@ -98,7 +98,7 @@
 
     - name: Copy certification files
       become: true
-      shell: "cp {{ easy_rsa_dir }}/{{ item }} /etc/openvpn"
+      shell: "cp {{ easy_rsa_dir }}/keys/{{ item }} /etc/openvpn"
       args:
         creates: "/etc/openvpn/{{ item }}"
       with_items:

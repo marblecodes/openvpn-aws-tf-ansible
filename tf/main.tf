@@ -100,6 +100,20 @@ resource "aws_security_group" "vpn_default_sg" {
   ingress {
     from_port   = "${var.vpn_port}"
     to_port     = "${var.vpn_port}"
+    protocol    = "udp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 53
+    to_port     = 53
+    protocol    = "udp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 53
+    to_port     = 53
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -130,32 +144,31 @@ resource "aws_instance" "vpn" {
   key_name               = "${aws_key_pair.vpn_auth.id}"
   vpc_security_group_ids = ["${aws_security_group.vpn_default_sg.id}"]
   subnet_id              = "${aws_subnet.vpn_public_subnet.id}"
-}
 
-####### Generate an Ansible inventory file
-provisioner "local-exec" {
-  command = <<EOD
+  ###### Generate an Ansible inventory file
+  provisioner "local-exec" {
+    command = <<EOD
 cat <<EOF > ../ansible/ansible_inventory
 [vpn]
 ${aws_instance.vpn.public_ip}
 EOF
 EOD
-}
+  }
 
-####### Generate an Ansible variable file
-provisioner "local-exec" {
-  command = <<EOD
-cat <<EOF > ../ansible/vpn_tf_vars
+  ####### Generate an Ansible variable file
+  provisioner "local-exec" {
+    command = <<EOD
+cat <<EOF > ../ansible/vpn_tf_vars.yml
 aws_region: ${var.vpn_region}
 vpn_instance_id: ${aws_instance.vpn.id}
-vpn_routes:
-  - ${var.cidrs["private"]}
 vpn_gateway: ${aws_instance.vpn.private_ip}
 vpn_port: ${var.vpn_port}
 EOF
 EOD
+  }
+
+  provisioner "local-exec" {
+    command = "aws ec2 wait instance-status-ok --instance-ids ${aws_instance.vpn.id} --profile ${var.vpn_profile} && echo 'VPN Instance is up and running!'"
+  }
 }
 
-provisioner "local-exec" {
-  command = "aws ec2 wait instance-status-ok --instance-ids ${aws_instance.vpn.id} --profile ${var.vpn_profile} && echo 'VPN Instance is up and running!'"
-}
