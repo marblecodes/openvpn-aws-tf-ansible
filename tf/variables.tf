@@ -1,7 +1,7 @@
-variable "vpn_region" {}
-variable "vpn_profile" {}
-variable "vpn_cidr" {}
-variable "vpn_port" {}
+variable "aws_region" {}
+variable "aws_profile" {}
+variable "vpc_cidr" {}
+variable "ovpn_port" {}
 
 variable "cidrs" {
   type = "map"
@@ -10,5 +10,5 @@ variable "cidrs" {
 data "aws_availability_zones" "available" {}
 variable "key_name" {}
 variable "public_key_path" {}
-variable "vpn_instance_type" {}
-variable "vpn_ami" {}
+variable "aws_vpn_instance_type" {}
+variable "aws_vpn_ami" {}

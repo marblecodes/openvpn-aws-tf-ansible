@@ -4,3 +4,7 @@ terraform.tfstate*
 
 ### Ansible
 *.retry
+
+### Custom
+ansible/ansible_inventory
+ansible/terraform_vars.yml

@@ -1,19 +1,16 @@
-port {{ vpn_port }}
+port {{ ovpn_port }}
 proto udp
 dev tun
 ca ca.crt
 cert {{ ca_key_name }}.crt
 key {{ ca_key_name }}.key
 dh dh2048.pem
-server {{ vpn_network }} {{ vpn_netmask }}
+server {{ vpn_network }}
 ifconfig-pool-persist ipp.txt
 
-push block-outside-dns
 push "def1 bypass-dhcp"
-push "dhcp-option DNS {{ vpn_gateway }} "
-push "dhcp-option DNS 8.8.8.8"
-
-{% for route in vpn_routes %}
+push "dhcp-option DNS {{ vpn_gateway }}"
+{% for route in vpn_push_routes %}
 push "route {{ route }}"
 {% endfor %}
 

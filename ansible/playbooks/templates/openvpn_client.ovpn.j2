@@ -1,7 +1,7 @@
 client
 dev tun
 proto udp
-remote {{ groups['vpn'][0] }} {{ vpn_port }}
+remote {{ groups['vpn'][0] }} {{ ovpn_port }}
 resolv-retry infinite
 nobind
 # user nobody
@@ -21,4 +21,4 @@ verb 3
 
 sndbuf 0
 rcvbuf 0
-setenv opt block-outside-dns
+#setenv opt block-outside-dns

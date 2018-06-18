@@ -5,8 +5,8 @@
   connection: ssh
   gather_facts: no
   vars_files:
-    - ../vpn_vars.yml
-    - ../vpn_tf_vars.yml
+    - ../ansible_vars.yml
+    - ../terraform_vars.yml
 
   pre_tasks:
     - name: 'install python2'
@@ -17,6 +17,10 @@
 # ---  Should be role: OpenVPN
 
   tasks:
+    - name: Set the hostname
+      become: yes
+      hostname:
+        name: vpn.server
 
     - name: Do an apt-get update & upgrade
       become: yes
@@ -63,42 +67,42 @@
 # --- Should be role: Create server CA
 
     - name: Create key folder
-      shell: "make-cadir {{ easy_rsa_dir }}"
+      shell: "make-cadir /home/ubuntu/ca"
       args:
-        creates: "{{ easy_rsa_dir }}"
+        creates: "/home/ubuntu/ca"
 
     - name: Copy vars file
       template:
         src: easy_rsa_vars.j2
-        dest: "{{ easy_rsa_dir }}/vars"
+        dest: "/home/ubuntu/ca/vars"
 
     - name: Load the CA vars and clean the key folder
       shell: ". ./vars; ./clean-all"
       args:
-        chdir: "{{ easy_rsa_dir }}"
-        creates: "{{ easy_rsa_dir }}/keys/index.txt"
+        chdir: "/home/ubuntu/ca"
+        creates: "/home/ubuntu/ca/keys/index.txt"
 
     - name: Generate Diffie-Hellman
       shell: ". ./vars; ./build-dh"
       args:
-        chdir: "{{ easy_rsa_dir }}"
-        creates: "{{ easy_rsa_dir }}/keys/dh2048.pem"
+        chdir: "/home/ubuntu/ca"
+        creates: "/home/ubuntu/ca/keys/dh2048.pem"
 
     - name: Build the root certificate
       shell: ". ./vars; ./pkitool --initca"
       args:
-        chdir: "{{ easy_rsa_dir }}"
-        creates: "{{ easy_rsa_dir }}/keys/ca.key"
+        chdir: "/home/ubuntu/ca"
+        creates: "/home/ubuntu/ca/keys/ca.key"
 
     - name: Build the server key pair
       shell: ". ./vars; ./pkitool --server {{ ca_key_name }}"
       args:
-        chdir: "{{ easy_rsa_dir }}"
-        creates: "{{ easy_rsa_dir }}/keys/{{ ca_key_name }}.key"
+        chdir: "/home/ubuntu/ca"
+        creates: "/home/ubuntu/ca/keys/{{ ca_key_name }}.key"
 
     - name: Copy certification files
       become: true
-      shell: "cp {{ easy_rsa_dir }}/keys/{{ item }} /etc/openvpn"
+      shell: "cp /home/ubuntu/ca/keys/{{ item }} /etc/openvpn"
       args:
         creates: "/etc/openvpn/{{ item }}"
       with_items:
@@ -109,18 +113,26 @@
 
   # ---- Should be role: Start services
 
+    - name: Copy dnsmasq configuration file
+      become: yes
+      template:
+        src: dnsmasq.conf.j2
+        dest: /etc/dnsmasq.conf
+
     - name: Start the openvpn service
       become: yes
       service:
         name: "openvpn@{{ ca_key_name }}"
         enabled: yes
-        state: started
+        state: restarted
 
     # TODO try to get Ubuntu docker container working
+
+
     - name: Start the dnsmasq service
       become: yes
       service:
         name: dnsmasq
         enabled: yes
-        state: started
+        state: restarted
 

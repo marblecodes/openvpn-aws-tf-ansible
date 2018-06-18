@@ -4,8 +4,8 @@
   become: no
   gather_facts: yes
   vars_files:
-    - ../vpn_vars.yml
-    - ../vpn_tf_vars.yml
+    - ../ansible_vars.yml
+    - ../terraform_vars.yml
 
   tasks:
   - name: Start the VPN instance

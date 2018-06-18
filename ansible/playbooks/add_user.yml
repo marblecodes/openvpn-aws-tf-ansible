@@ -5,43 +5,43 @@
   connection: ssh
   gather_facts: no
   vars_files:
-    - ../vpn_vars.yml
-    - ../vpn_tf_vars.yml
+    - ../ansible_vars.yml
+    - ../terraform_vars.yml
 
   tasks:
     - name: Build the client key pair
       shell: ". ./vars; ./pkitool {{ username }}"
       args:
-        chdir: "{{ easy_rsa_dir }}"
-        creates: "{{ easy_rsa_dir }}/keys/{{ username }}.key"
+        chdir: "/home/ubuntu/ca"
+        creates: "/home/ubuntu/ca/keys/{{ username }}.key"
 
     - name: Create folder to store client files
       file:
-        path: "~/vpn_users/{{ username }}"
+        path: "/home/ubuntu/vpn_users/{{ username }}"
         state: directory
 
     - name: Generate the OpenVPN client config
       template:
         src: openvpn_client.ovpn.j2
-        dest: "~/vpn_users/{{ username }}/{{ username }}.ovpn"
+        dest: "/home/ubuntu/vpn_users/{{ username }}/{{ username }}.ovpn"
 
     - name: Move the client key files to the correct folder
-      shell: "mv {{ username }}.crt {{ username }}.key ~/vpn_users/{{ username }}"
+      shell: "mv {{ username }}.crt {{ username }}.key /home/ubuntu/vpn_users/{{ username }}"
       args:
-        chdir: "{{ easy_rsa_dir }}/keys"
-        creates: "~/vpn_users/ {{ username }} / {{ username }}.key"
+        chdir: "/home/ubuntu/ca/keys"
+        creates: "/home/ubuntu/vpn_users/ {{ username }} / {{ username }}.key"
 
     - name: Copy the OpenVPN auth key
       become: yes
       shell: "cp /etc/openvpn/ta.key /home/ubuntu/vpn_users/{{ username }}"
       args:
-        creates: "~/vpn_users/ {{ username }}"
+        creates: "/home/ubuntu/vpn_users/ {{ username }}"
 
     - name: Copy the Central Authority key
       become: yes
       shell: "cp /etc/openvpn/ca.crt /home/ubuntu/vpn_users/{{ username }}"
       args:
-        creates: "~/vpn_users/{{ username }}/ca.crt"
+        creates: "/home/ubuntu/vpn_users/{{ username }}/ca.crt"
 
     - name: Change permissions of the OpenVPN auth key
       become: yes
@@ -58,15 +58,15 @@
     - name: Zip the client files
       shell: "zip -r {{ username }}_ovpn.zip {{ username }}"
       args:
-        chdir: "~/vpn_users"
+        chdir: "/home/ubuntu/vpn_users"
         creates: "{{ username }}_ovpn.zip"
 
     - name: Download the client zip
       fetch:
-        src: "~/vpn_users/{{ username }}_ovpn.zip"
-        dest: "~/"
+        src: "/home/ubuntu/vpn_users/{{ username }}_ovpn.zip"
+        dest: "~"
         flat: yes
 
     - name: Output downloaded path
       debug:
-        msg: "Downloaded client vpn files to ~/{{ username }}_ovpn.zip"
+        msg: "Downloaded client vpn files to /home/ubuntu/{{ username }}_ovpn.zip"

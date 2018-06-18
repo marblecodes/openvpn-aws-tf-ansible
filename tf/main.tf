@@ -1,12 +1,12 @@
 ######## --------------------- AWS PROVIDER
 provider "aws" {
-  region  = "${var.vpn_region}"
-  profile = "${var.vpn_profile}"
+  region  = "${var.aws_region}"
+  profile = "${var.aws_profile}"
 }
 
 ######## --------------------- VIRTUAL PRIVATE NETWORK
 resource "aws_vpc" "vpn_vpc" {
-  cidr_block           = "${var.vpn_cidr}"
+  cidr_block           = "${var.vpc_cidr}"
   enable_dns_hostnames = true              # A boolean flag to enable DNS hostnames in the VPC
 
   tags {
@@ -98,23 +98,9 @@ resource "aws_security_group" "vpn_default_sg" {
   }
 
   ingress {
-    from_port   = "${var.vpn_port}"
-    to_port     = "${var.vpn_port}"
+    from_port   = "${var.ovpn_port}"
+    to_port     = "${var.ovpn_port}"
     protocol    = "udp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 53
-    to_port     = 53
-    protocol    = "udp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 53
-    to_port     = 53
-    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -128,14 +114,14 @@ resource "aws_security_group" "vpn_default_sg" {
 
 ######## --------------------- KEY PAIR
 resource "aws_key_pair" "vpn_auth" {
-  key_name   = "${var.key_name}"
+  key_name   = "vpn"
   public_key = "${file(var.public_key_path)}"
 }
 
 ######## --------------------- VPN INSTANCE
 resource "aws_instance" "vpn" {
-  instance_type = "${var.vpn_instance_type}"
-  ami           = "${var.vpn_ami}"
+  instance_type = "${var.aws_vpn_instance_type}"
+  ami           = "${var.aws_vpn_ami}"
 
   tags {
     Name = "VPN"
@@ -158,17 +144,17 @@ EOD
   ####### Generate an Ansible variable file
   provisioner "local-exec" {
     command = <<EOD
-cat <<EOF > ../ansible/vpn_tf_vars.yml
-aws_region: ${var.vpn_region}
+cat <<EOF > ../ansible/terraform_vars.yml
+aws_region: ${var.aws_region}
 vpn_instance_id: ${aws_instance.vpn.id}
 vpn_gateway: ${aws_instance.vpn.private_ip}
-vpn_port: ${var.vpn_port}
+vpn_port: ${var.ovpn_port}
 EOF
 EOD
   }
 
   provisioner "local-exec" {
-    command = "aws ec2 wait instance-status-ok --instance-ids ${aws_instance.vpn.id} --profile ${var.vpn_profile} && echo 'VPN Instance is up and running!'"
+    command = "aws ec2 wait instance-status-ok --instance-ids ${aws_instance.vpn.id} --profile ${var.aws_profile} && echo 'VPN Instance is up and running!'"
   }
 }
 
