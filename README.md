@@ -24,7 +24,7 @@ For other Operating Systems see https://docs.aws.amazon.com/cli/latest/userguide
 ### 3) Create a ssh key-pair to access the OpenVPN instance
 ```bash 
 ssh-keygen -t rsa -C "your.email@example.com" -b 4096 `
-hmod 600 ~/.ssh/vpn
+chmod 600 ~/.ssh/vpn
 ```
 
 
