@@ -8,3 +8,5 @@ terraform.tfstate*
 ### Custom
 ansible/ansible_inventory
 ansible/terraform_vars.yml
+ansible/ansible_vars.yml
+tf/terraform.tfvars
