@@ -1,0 +1,13 @@
+- name: Copy OpenVPN configuration file
+  become: yes
+  template:
+    src: openvpn_server.conf.j2
+    dest: /etc/openvpn/{{ ca_key_name }}.conf
+  notify: Restart the openvpn service
+
+- name: Restart the openvpn service
+  become: yes
+  service:
+    name: "openvpn@{{ ca_key_name }}"
+    enabled: yes
+    state: restarted

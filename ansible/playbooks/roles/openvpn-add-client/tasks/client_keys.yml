@@ -1,0 +1,45 @@
+- name: Build the client key pair
+  shell: ". ./vars; ./pkitool {{ username }}"
+  args:
+    chdir: "{{ ca_dir }}"
+    creates: "{{ ca_dir }}/keys/{{ username }}.key"
+
+- name: Create folder to store client files
+  file:
+    path: "/home/ubuntu/vpn_users/{{ username }}"
+    state: directory
+
+- name: Generate the OpenVPN client config
+  template:
+    src: openvpn_client.ovpn.j2
+    dest: "/home/ubuntu/vpn_users/{{ username }}/{{ username }}.ovpn"
+
+- name: Move the client key files to the correct folder
+  shell: "mv {{ username }}.crt {{ username }}.key /home/ubuntu/vpn_users/{{ username }}"
+  args:
+    chdir: "{{ ca_dir }}/keys"
+    creates: "/home/ubuntu/vpn_users/ {{ username }} / {{ username }}.key"
+
+- name: Copy the OpenVPN auth key
+  become: yes
+  shell: "cp /etc/openvpn/ta.key /home/ubuntu/vpn_users/{{ username }}"
+  args:
+    creates: "/home/ubuntu/vpn_users/ {{ username }}"
+
+- name: Copy the Central Authority key
+  become: yes
+  shell: "cp /etc/openvpn/ca.crt /home/ubuntu/vpn_users/{{ username }}"
+  args:
+    creates: "/home/ubuntu/vpn_users/{{ username }}/ca.crt"
+
+- name: Change permissions of the OpenVPN auth key
+  become: yes
+  file:
+    path: "/home/ubuntu/vpn_users/{{ username }}/ta.key"
+    owner: ubuntu
+
+- name: Change permissions of the Central Authority key
+  become: yes
+  file:
+    path: "/home/ubuntu/vpn_users/{{ username }}/ca.crt"
+    owner: ubuntu

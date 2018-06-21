@@ -144,11 +144,11 @@ EOD
   ####### Generate an Ansible variable file
   provisioner "local-exec" {
     command = <<EOD
-cat <<EOF > ../ansible/terraform_vars.yml
+cat <<EOF > ../ansible/playbooks/host_vars/${aws_instance.vpn.public_ip}
 aws_region: ${var.aws_region}
 vpn_instance_id: ${aws_instance.vpn.id}
 vpn_gateway: ${aws_instance.vpn.private_ip}
-vpn_port: ${var.ovpn_port}
+ovpn_port: ${var.ovpn_port}
 EOF
 EOD
   }

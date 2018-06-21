@@ -1,0 +1,23 @@
+- name: Install zip
+  become: yes
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - zip
+
+- name: Zip the client files
+  shell: "zip -r {{ username }}_ovpn.zip {{ username }}"
+  args:
+    chdir: "/home/ubuntu/vpn_users"
+    creates: "{{ username }}_ovpn.zip"
+
+- name: Download the client zip
+  fetch:
+    src: "/home/ubuntu/vpn_users/{{ username }}_ovpn.zip"
+    dest: "{{ output }}"
+    flat: yes
+
+- name: Output downloaded path
+  debug:
+    msg: "Downloaded client vpn files to {{ output }}"

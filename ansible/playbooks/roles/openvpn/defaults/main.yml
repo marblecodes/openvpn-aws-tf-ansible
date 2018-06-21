@@ -1,0 +1,13 @@
+vpn_network: 10.3.0.0 255.255.255.0
+vpn_push_routes :
+  - 172.20.0.0 255.255.0.0
+
+ca_dir: /home/ubuntu/ca
+
+ca_key_country: BE
+ca_key_province: BR
+ca_key_city: Brussels
+ca_key_org: MyOrganization
+ca_key_email: your.email@organization.org
+ca_key_org_unit: MyOrganizationalUnit
+ca_key_name: vpn_server

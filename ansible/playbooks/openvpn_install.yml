@@ -1,0 +1,16 @@
+- name: Install OpenVPN and configure it
+  hosts: vpn
+  user: ubuntu
+  become_method: sudo
+  connection: ssh
+  gather_facts: no
+
+  pre_tasks:
+    - name: 'install python2'
+      raw: sudo apt-get -y install python-minimal
+      changed_when: false
+
+  roles:
+    - openvpn
+    - dnsmasq
+    - { role: openvpn-add-client, when: (username is defined) and (output is defined) }

@@ -6,7 +6,7 @@ terraform.tfstate*
 *.retry
 
 ### Custom
+ansible/playbooks/host_vars/*
+/ansible/playbooks/roles/openvpn/default/main.yml
 ansible/ansible_inventory
-ansible/terraform_vars.yml
-ansible/ansible_vars.yml
 tf/terraform.tfvars

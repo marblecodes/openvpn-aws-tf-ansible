@@ -45,7 +45,7 @@ cidrs     = {
 public_key_path   = "~/.ssh/vpn.pub" # Path to your local ssh key pair (from step 3)
 ```
 
-### 2) Create a file */ansible/ansible_vars.yml*
+### 2) Create a file */ansible/playbooks/roles/openvpn/default/main.yml*
 ```yml
 vpn_network: 10.3.0.0 255.255.255.0 # The VPN network
 vpn_push_routes : 

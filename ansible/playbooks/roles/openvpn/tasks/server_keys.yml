@@ -1,0 +1,50 @@
+- name: Generate tls-auth key
+  become: yes
+  shell: openvpn --genkey --secret /etc/openvpn/ta.key
+  args:
+    creates: "/etc/openvpn/ta.key"
+
+- name: Create key folder
+  shell: "make-cadir {{ ca_dir }}"
+  args:
+    creates: "{{ ca_dir }}"
+
+- name: Copy vars file
+  template:
+    src: easy_rsa_vars.j2
+    dest: "{{ ca_dir }}/vars"
+
+- name: Load the CA vars and clean the key folder
+  shell: ". ./vars; ./clean-all"
+  args:
+    chdir: "{{ ca_dir }}"
+    creates: "{{ ca_dir }}/keys/index.txt"
+
+- name: Generate Diffie-Hellman
+  shell: ". ./vars; ./build-dh"
+  args:
+    chdir: "{{ ca_dir }}"
+    creates: "{{ ca_dir }}/keys/dh2048.pem"
+
+- name: Build the root certificate
+  shell: ". ./vars; ./pkitool --initca"
+  args:
+    chdir: "{{ ca_dir }}"
+    creates: "{{ ca_dir }}/keys/ca.key"
+
+- name: Build the server key pair
+  shell: ". ./vars; ./pkitool --server {{ ca_key_name }}"
+  args:
+    chdir: "{{ ca_dir }}"
+    creates: "{{ ca_dir }}/keys/{{ ca_key_name }}.key"
+
+- name: Copy certification files
+  become: true
+  shell: "cp {{ ca_dir }}/keys/{{ item }} /etc/openvpn"
+  args:
+    creates: "/etc/openvpn/{{ item }}"
+  with_items:
+    - "ca.crt"
+    - "{{ ca_key_name }}.crt"
+    - "{{ ca_key_name }}.key"
+    - "dh2048.pem"

@@ -1,0 +1,6 @@
+---
+- name: Set variables from openvpn role
+  include_vars: ../../openvpn/defaults/main.yml
+
+- include: client_keys.yml
+- include: download_keys.yml
