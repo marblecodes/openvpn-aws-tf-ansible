@@ -38,7 +38,7 @@ resource "null_resource" "generate_inventory" {
 
   provisioner "local-exec" {
     command = <<EOD
-    cat <<EOF > ../ansible/playbooks/group_vars/vpn
+    cat <<EOF > ../ansible/playbooks/group_vars/vpn_public
 aws_instance_id:${module.vpn_instance.vpn_instance_id}
 vpn_gateway:${module.vpn_instance.private_ip}
 ovpn_port:${var.ovpn_port}
