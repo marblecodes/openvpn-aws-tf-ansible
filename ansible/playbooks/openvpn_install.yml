@@ -5,12 +5,8 @@
   connection: ssh
   gather_facts: no
 
-  pre_tasks:
-    - name: 'install python2'
-      raw: sudo apt-get -y install python-minimal
-      changed_when: false
-
   roles:
+    - common
     - openvpn
     - dnsmasq
     - { role: openvpn-add-client, when: (username is defined) and (output is defined) }

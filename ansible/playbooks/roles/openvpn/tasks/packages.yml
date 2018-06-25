@@ -1,18 +1,9 @@
-- name: Do an apt-get update & upgrade
-  become: yes
-  apt:
-    upgrade: yes
-    update_cache: yes
-    force_apt_get: yes
-
 - name: Install required packages
   become: yes
   package:
     name: "{{ item }}"
     state: present
   with_items:
-    - sudo
-    - git
     - openssl
     - openvpn
     - easy-rsa

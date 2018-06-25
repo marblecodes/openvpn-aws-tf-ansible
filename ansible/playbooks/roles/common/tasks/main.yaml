@@ -1,0 +1,6 @@
+---
+- name: 'install python2'
+  raw: sudo apt-get -y install python-minimal
+  changed_when: false
+
+- include: packages.yml
