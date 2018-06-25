@@ -29,20 +29,21 @@ chmod 600 ~/.ssh/vpn
 
 
 ## Configuration
-### 1) Create a file */tf/terraform.tfvars*
+### 1) Create a file */terraform/terraform.tfvars*
 ```bash
 aws_region    = "eu-west-3" # Your AWS Region
 aws_profile   = "terraform-vpn" # Your AWS Profile name (from step 2)
 vpc_cidr      = "172.20.0.0/16" # Your private cloud CIDR
-aws_vpn_instance_type = "t2.nano"
-aws_vpn_ami     = "ami-1960d164"
-
-ovpn_port      = "1194" # The OpenVPN PORT
+vpc_name      = "vpn network" # Name of your VPC
 cidrs     = {
   public  = "172.20.3.0/24" # The public subnet CIDR
   private = "172.20.1.0/24" # The private subnet CIDR
 }
-public_key_path   = "~/.ssh/vpn.pub" # Path to your local ssh key pair (from step 3)
+
+vpn_public_key_path   = "~/.ssh/vpn.pub" # Path to your local ssh key pair (from step 3)
+aws_vpn_instance_type = "t2.nano"
+aws_vpn_ami     = "ami-1960d164"
+ovpn_port      = "1194" # The OpenVPN port
 ```
 
 ### 2) Create a file */ansible/playbooks/roles/openvpn/default/main.yml*
@@ -70,7 +71,7 @@ export AWS_DEFAULT_REGION="YOUR_AWS_REGION"
 
 ### 2) Bootstrap the infrastructure
 ```bash
-cd tf
+cd terraform
 terraform init
 terraform plan
 terraform apply
@@ -83,14 +84,16 @@ terraform apply
 ### 3) Install OpenVPN on the EC2 Instance
 ```bash
 cd ansible
-ansible-playbook -i ansible_inventory playbooks/install.yml
+
+# This will also add a client
+ansible-playbook -i ansible_inventory playbooks/openvpn_install.yml -e username=johnappleseed -e output=/tmp/john.zip
 ```
 
 ### 4) Add a client to the VPN
 This will download the necessary OpenVPN config and credentails as a zip file to your host's home folder. See the output from Ansible.
 ```bash
 cd ansible
-ansible-playbook -i ansible_inventory playbooks/add_user.yml -e username=johnappleseed
+ansible-playbook -i ansible_inventory playbooks/openvpn_add_client.yml -e username=johnappleseed -e output=/tmp/john.zip
 ```
 
 ## TODO:

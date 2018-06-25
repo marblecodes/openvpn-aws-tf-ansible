@@ -1,7 +1,7 @@
 client
 dev tun
 proto udp
-remote {{ groups['vpn'][0] }} {{ ovpn_port }}
+remote {{ groups['vpn_public'][0] }} {{ ovpn_port }}
 resolv-retry infinite
 nobind
 # user nobody

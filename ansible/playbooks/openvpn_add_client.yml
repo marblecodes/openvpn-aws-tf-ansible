@@ -1,5 +1,5 @@
 - name: Add client to OpenVPN
-  hosts: vpn
+  hosts: vpn_public
   user: ubuntu
   become_method: sudo
   connection: ssh

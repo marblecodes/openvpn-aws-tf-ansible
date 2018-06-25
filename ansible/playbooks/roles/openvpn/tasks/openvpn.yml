@@ -3,7 +3,6 @@
   template:
     src: openvpn_server.conf.j2
     dest: /etc/openvpn/{{ ca_key_name }}.conf
-  notify: Restart the openvpn service
 
 - name: Restart the openvpn service
   become: yes

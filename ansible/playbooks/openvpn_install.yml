@@ -1,5 +1,5 @@
 - name: Install OpenVPN and configure it
-  hosts: vpn
+  hosts: vpn_public
   user: ubuntu
   become_method: sudo
   connection: ssh
