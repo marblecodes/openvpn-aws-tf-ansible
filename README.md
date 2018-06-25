@@ -48,9 +48,13 @@ ovpn_port      = "1194" # The OpenVPN port
 
 ### 2) Create a file */ansible/playbooks/roles/openvpn/default/main.yml*
 ```yml
-vpn_network: 10.3.0.0 255.255.255.0 # The VPN network
-vpn_push_routes : 
-  - 172.20.0.0 255.255.0.0 # Push the entire VPC. Must be the same as above.
+vpn_cidr: 10.3.0.0/24
+
+ovpn_network: 10.3.0.0 255.255.255.0
+ovpn_push_routes :
+  - 172.20.0.0 255.255.0.0
+
+ca_dir: /home/ubuntu/ca
 
 ca_key_country: BE
 ca_key_province: BR

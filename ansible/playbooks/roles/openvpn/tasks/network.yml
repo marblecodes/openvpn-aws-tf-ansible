@@ -11,3 +11,43 @@
     sysctl_set: yes
     state: present
     reload: yes
+
+- name: Set forward policy
+  become: yes
+  lineinfile:
+    dest: /etc/default/ufw
+    line: DEFAULT_FORWARD_POLICY="ACCEPT"
+    regexp: "^DEFAULT_FORWARD_POLICY\\="
+
+- name: Copy ufw before.rules
+  become: yes
+  template:
+    src: before.rules.j2
+    dest: /etc/ufw/before.rules
+
+- name: Allow OpenSSH
+  become: yes
+  ufw:
+    rule: allow
+    name: OpenSSH
+
+- name: Allow DNS
+  become: yes
+  ufw:
+    rule: allow
+    port: 53
+    proto: any
+
+- name: Allow OpenVPN
+  become: yes
+  ufw:
+      rule: allow
+      port: 1194
+      proto: udp
+
+- name: Restart ufw
+  become: yes
+  service:
+    name: "ufw"
+    enabled: yes
+    state: restarted

@@ -5,12 +5,12 @@ ca ca.crt
 cert {{ ca_key_name }}.crt
 key {{ ca_key_name }}.key
 dh dh2048.pem
-server {{ vpn_network }}
+server {{ ovpn_network }}
 ifconfig-pool-persist ipp.txt
 
-push "def1 bypass-dhcp"
+push "redirect-gateway def1"
 push "dhcp-option DNS {{ vpn_gateway }}"
-{% for route in vpn_push_routes %}
+{% for route in ovpn_push_routes %}
 push "route {{ route }}"
 {% endfor %}
 

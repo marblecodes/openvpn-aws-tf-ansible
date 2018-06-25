@@ -8,6 +8,9 @@ nobind
 # group nobody
 persist-key
 persist-tun
+
+pull-filter ignore redirect-gateway
+
 ca ca.crt
 cert {{ username }}.crt
 key {{ username }}.key

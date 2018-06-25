@@ -42,6 +42,7 @@ resource "null_resource" "generate_inventory" {
 aws_instance_id: ${module.vpn_instance.vpn_instance_id}
 vpn_gateway: ${module.vpn_instance.private_ip}
 ovpn_port: ${var.ovpn_port}
+vpc_cidr: ${var.vpc_cidr}
 EOF
 EOD
   }
