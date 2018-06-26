@@ -51,3 +51,8 @@
     name: "ufw"
     enabled: yes
     state: restarted
+
+- name: Enable ufw
+  become: yes
+  ufw:
+    state: enabled
