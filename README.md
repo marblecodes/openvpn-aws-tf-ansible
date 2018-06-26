@@ -82,7 +82,7 @@ terraform apply
 
 # This will create the following configuration files for ansible :
 #           ./ansible/ansible_inventory 
-#           and ./ansible/terraform_vars.yml
+#           ./ansible/playbooks/group_vars/vpn_public.yml
 ```
 
 ### 3) Install OpenVPN on the EC2 Instance
