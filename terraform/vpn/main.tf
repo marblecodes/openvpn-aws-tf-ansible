@@ -17,6 +17,13 @@ resource "aws_security_group" "vpn_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["${var.vpc_cidr}"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -40,7 +47,16 @@ resource "aws_instance" "vpn" {
     Name = "VPN"
   }
 
-  key_name               = "${aws_key_pair.vpn_auth.id}"
-  vpc_security_group_ids = ["${aws_security_group.vpn_sg.id}"]
-  subnet_id              = "${var.public_subnet_id}"
+  key_name                    = "${aws_key_pair.vpn_auth.id}"
+  vpc_security_group_ids      = ["${aws_security_group.vpn_sg.id}"]
+  subnet_id                   = "${var.subnet_id}"
+  associate_public_ip_address = true
+  source_dest_check           = false
+}
+
+######### ------------ Add NAT routing on private routing table
+resource "aws_route" "NAT_routing" {
+  route_table_id         = "${var.private_route_table}"
+  destination_cidr_block = "0.0.0.0/0"
+  instance_id            = "${aws_instance.vpn.id}"
 }

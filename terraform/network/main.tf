@@ -24,8 +24,8 @@ resource "aws_internet_gateway" "vpc_igw" {
 }
 
 ######## --------------------- ROUTE TABLES
-resource "aws_route_table" "vpc_public_routes" {
-  vpc_id = "${aws_vpc.vpc.id}"
+resource "aws_default_route_table" "vpc_public_routes" {
+  default_route_table_id = "${aws_vpc.vpc.default_route_table_id}"
 
   route {
     cidr_block = "0.0.0.0/0"
@@ -37,8 +37,8 @@ resource "aws_route_table" "vpc_public_routes" {
   }
 }
 
-resource "aws_default_route_table" "vpc_private_routes" {
-  default_route_table_id = "${aws_vpc.vpc.default_route_table_id}"
+resource "aws_route_table" "vpc_private_routes" {
+  vpc_id = "${aws_vpc.vpc.id}"
 
   tags {
     Name = "VPC PRIVATE ROUTES"
@@ -55,7 +55,7 @@ resource "aws_default_route_table" "vpc_private_routes" {
 resource "aws_subnet" "vpc_public_subnet" {
   vpc_id                  = "${aws_vpc.vpc.id}"
   cidr_block              = "${var.cidrs["public"]}"
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = false
   availability_zone       = "${data.aws_availability_zones.available.names[0]}"
 
   tags {
@@ -77,10 +77,10 @@ resource "aws_subnet" "vpc_private_subnet" {
 ######## --------------------- SUBNET ASSOCIATION
 resource "aws_route_table_association" "vpc_public_assoc" {
   subnet_id      = "${aws_subnet.vpc_public_subnet.id}"
-  route_table_id = "${aws_route_table.vpc_public_routes.id}"
+  route_table_id = "${aws_default_route_table.vpc_public_routes.id}"
 }
 
 resource "aws_route_table_association" "vpc_private_assoc" {
   subnet_id      = "${aws_subnet.vpc_private_subnet.id}"
-  route_table_id = "${aws_default_route_table.vpc_private_routes.id}"
+  route_table_id = "${aws_route_table.vpc_private_routes.id}"
 }
