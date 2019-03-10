@@ -1,0 +1,9 @@
+- name: Add client to OpenVPN
+  hosts: vpn_public
+  user: ubuntu
+  become_method: sudo
+  connection: ssh
+  gather_facts: no
+
+  roles:
+    - { role: openvpn-add-client, when: (username is defined) and (output is defined) }

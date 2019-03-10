@@ -29,27 +29,29 @@ chmod 600 ~/.ssh/vpn
 
 
 ## Configuration
-### 1) Create a file */terraform/terraform.tfvars*
-```bash
-aws_region    = "eu-west-3" # Your AWS Region
-aws_profile   = "terraform-vpn" # Your AWS Profile name (from step 2)
-vpc_cidr      = "172.20.0.0/16" # Your private cloud CIDR
-vpc_name      = "vpn network" # Name of your VPC
-cidrs     = {
-  public  = "172.20.3.0/24" # The public subnet CIDR
-  private = "172.20.1.0/24" # The private subnet CIDR
-}
+### 1) Modify the config file as you wish */config.json*
+```json
+{
+  "REGION": "eu-west-1",
+  "PROFILE": "terraform-vpn",
 
-vpn_public_key_path   = "~/.ssh/vpn.pub" # Path to your local ssh key pair (from step 3)
-aws_vpn_instance_type = "t2.nano"
-aws_vpn_ami     = "ami-1960d164"
-ovpn_port      = "1194" # The OpenVPN port
+  "VPN_INSTANCE_TYPE": "t3.micro",
+  "VPN_AMI": "ami-00035f41c82244dab",
+  "VPN_SSH_PUBLIC_KEY": "~/.ssh/vpn.pub",
+  "VPN_SSH_PRIVATE_KEY": "~/.ssh/vpn",
+  "OVPN_PORT": "1194",
+
+  "VPC_CIDR": "172.20.0.0/16",
+  "VPC_CIDRS": {
+    "public": "172.20.3.0/24",
+    "private": "172.20.1.0/24"
+  }
+}
 ```
 
-### 2) Create a file */ansible/playbooks/roles/openvpn/default/main.yml*
+### 2) Modify the default vars of the openvpn ansible role as you wish */ansible/roles/openvpn/default/main.yml*
 ```yml
-vpn_cidr: 10.3.0.0/24
-
+ovpn_cidr: 10.3.0.0/24
 ovpn_network: 10.3.0.0 255.255.255.0
 ovpn_push_routes :
   - 172.20.0.0 255.255.0.0
@@ -77,30 +79,51 @@ export AWS_DEFAULT_REGION="YOUR_AWS_REGION"
 ```bash
 cd terraform
 terraform init
-terraform plan
-terraform apply
-
-# This will create the following configuration files for ansible :
-#           ./ansible/ansible_inventory 
-#           ./ansible/playbooks/group_vars/vpn_public.yml
+terraform plan --var-file ../config.json
+terraform apply --var-file ../config.json
 ```
 
-### 3) Install OpenVPN on the EC2 Instance
+### 3) Wait till the EC2 is ready
+
+### 4) Install OpenVPN on the EC2 Instance
+This will download a zip file with client openvpn configuration and keys to your host.
 ```bash
 cd ansible
 
 # This will also add a client
-ansible-playbook -i ansible_inventory playbooks/openvpn_install.yml -e username=johnappleseed -e output=/tmp/john.zip
+ansible-playbook -i inventory openvpn_install.yml -e "username=john" -e "output=/tmp/john_vpn.zip"
 ```
 
-### 4) Add a client to the VPN
-This will download the necessary OpenVPN config and credentails as a zip file to your host's home folder. See the output from Ansible.
+### 4) Add an additional client to the VPN
+This will download a zip file with client openvpn configuration and keys to your host.
 ```bash
 cd ansible
-ansible-playbook -i ansible_inventory playbooks/openvpn_add_client.yml -e username=johnappleseed -e output=/tmp/john.zip
+ansible-playbook -i inventory openvpn_add_client.yml -e "username=john" -e "output=/tmp/john_vpn.zip"
+
 ```
 
+## Reprovision the EC2
+If you want to recreate the vpn server with a new IP adress and new correct configuration, run these commands:
+```bash
+# taint the ec2 instance and ansible inventory generation script, this means it will be destroyed and recreated
+
+cd terraform
+terraform taint aws_instance.vpn 
+terraform taint null_resource.vpn_generate_inventory
+terraform apply --var-file ../config.json -auto-approve
+
+# wait till the instance get up ...
+
+# provision again with ansible
+cd ../ansible
+ansible-playbook -i inventory openvpn_install.yml -e "username=bram" -e "output=/Users/brmm/Desktop/bram_vpn.zip"
+```
+
+## Problems:
+* Redirecting all traffic through the VPN is not working properly yet.
+* If you use tunnelblick on Mac on Sierra or higher you might have DNS issues see this [github issue](https://github.com/Tunnelblick/Tunnelblick/issues/401)
+
 ## TODO:
-* Write a Playbook to open/close the ssh port in the security group.
-* Use an elastic IP / or update `ansible_inventory` on vpn start
-* Use containers instead of instances
+* Fix traffic redirect through the tunnel
+
+

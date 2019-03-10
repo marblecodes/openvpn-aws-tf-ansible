@@ -1,0 +1,45 @@
+- name: Create folder to store client files
+  file:
+    path: "/home/ubuntu/vpn_users/{{ username }}"
+    state: directory
+
+
+- name: set client CN
+  lineinfile:
+    dest: "{{ca_dir}}/easyrsa3/vars"
+    line: set_var EASYRSA_REQ_CN "{{username}}"
+    regexp: "#set_var EASYRSA_REQ_CN"
+
+- name: "Build client keys"
+  command: ./easyrsa --batch gen-req {{ username }} nopass
+  args:
+    chdir: "{{ca_dir}}/easyrsa3"
+    creates: "{{ca_dir}}/easyrsa3/pki/private/{{ username }}.key"
+
+
+- name: "Sign client keys"
+  command: ./easyrsa --batch sign-req client {{ username }}
+  args:
+    chdir: "{{ca_dir}}/easyrsa3"
+    creates: "{{ca_dir}}/easyrsa3/pki/issued/{{username}}.crt"
+
+- name: Copy ta.key
+  become: true
+  shell: "cp /etc/openvpn/ta.key /home/ubuntu/vpn_users/{{username}}/ta.key"
+  args:
+    creates: "/home/ubuntu/vpn_users/{{ username }}/ta.key"
+
+- name: Copy certification files
+  become: true
+  shell: "cp {{ ca_dir }}/easyrsa3/pki/{{ item }} /home/ubuntu/vpn_users/{{username}}"
+  args:
+    creates: "/home/ubuntu/vpn_users/{{ username }}/{{ item }}"
+  with_items:
+    - "private/{{username}}.key"
+    - "ca.crt"
+    - "issued/{{username}}.crt"
+
+- name: Generate the OpenVPN client config
+  template:
+    src: openvpn_client.ovpn.j2
+    dest: "/home/ubuntu/vpn_users/{{ username }}/{{ username }}.ovpn"

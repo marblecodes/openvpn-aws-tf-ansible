@@ -1,0 +1,60 @@
+- name: "Download easy-rsa from GitHub"
+  git:
+    repo: "https://github.com/OpenVPN/easy-rsa.git"
+    dest: "{{ca_dir}}"
+    depth: 1
+    version: "master"
+    force: yes
+    update: yes
+
+- name: Copy vars file
+  template:
+    src: easy_rsa_vars.j2
+    dest: "{{ca_dir}}/easyrsa3/vars"
+
+- name: "Initialize pki"
+  command: ./easyrsa init-pki
+  args:
+    chdir: "{{ca_dir}}/easyrsa3"
+    creates: "{{ca_dir}}/easyrsa3/pki"
+
+- name: "Build CA keys"
+  command: ./easyrsa --batch build-ca nopass
+  args:
+    chdir: "{{ca_dir}}/easyrsa3"
+    creates: "{{ca_dir}}/easyrsa3/pki/private/ca.key"
+
+- name: "Build server keys"
+  command: ./easyrsa --batch gen-req {{ ca_key_name }} nopass
+  args:
+    chdir: "{{ca_dir}}/easyrsa3"
+    creates: "{{ca_dir}}/easyrsa3/pki/private/{{ ca_key_name }}.key"
+
+- name: "Sign server keys"
+  command: ./easyrsa --batch sign-req server {{ ca_key_name }}
+  args:
+    chdir: "{{ca_dir}}/easyrsa3"
+    creates: "{{ca_dir}}/easyrsa3/pki/issued/{{ ca_key_name }}.crt"
+
+- name: "Build the DH (Diffie-Hellman) key"
+  command: ./easyrsa gen-dh
+  args:
+    chdir: "{{ca_dir}}/easyrsa3"
+    creates: "{{ca_dir}}/easyrsa3/pki/dh.pem"
+
+- name: Generate tls-auth key
+  become: yes
+  shell: openvpn --genkey --secret /etc/openvpn/ta.key
+  args:
+    creates: "/etc/openvpn/ta.key"
+
+- name: Copy certification files
+  become: true
+  shell: "cp {{ ca_dir }}/easyrsa3/pki/{{ item }} /etc/openvpn"
+  args:
+    creates: "/etc/openvpn/{{ item }}"
+  with_items:
+    - "private/{{ ca_key_name }}.key"
+    - "ca.crt"
+    - "dh.pem"
+    - "issued/{{ ca_key_name }}.crt"

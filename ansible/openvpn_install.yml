@@ -1,0 +1,24 @@
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Add VPN ip address to known ssh hosts
+      lineinfile:
+        dest: ~/.ssh/known_hosts
+        create: yes
+        state: present
+        line: "{{ lookup('pipe', 'ssh-keyscan -t rsa {{ item }}') }}"
+      with_items:
+        "{{ groups['vpn_public'][0] }}"
+
+
+- name: Bootstrap the vpn server
+  hosts: vpn_public
+  user: ubuntu
+  become_method: sudo
+  connection: ssh
+  gather_facts: no
+  roles:
+    - common
+    - openvpn
+    - dnsmasq
+    - { role: openvpn-add-client, when: (username is defined) and (output is defined) }

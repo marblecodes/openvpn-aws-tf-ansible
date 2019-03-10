@@ -1,9 +1,0 @@
-- name: Install required packages
-  become: yes
-  package:
-    name: "{{ item }}"
-    state: present
-  with_items:
-    - openssl
-    - openvpn
-    - easy-rsa

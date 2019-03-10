@@ -1,0 +1,16 @@
+{
+  "REGION": "eu-west-1",
+  "PROFILE": "terraform-vpn",
+
+  "VPN_INSTANCE_TYPE": "t3.micro",
+  "VPN_AMI": "ami-00035f41c82244dab",
+  "VPN_SSH_PUBLIC_KEY": "~/.ssh/vpn.pub",
+  "VPN_SSH_PRIVATE_KEY": "~/.ssh/vpn",
+  "OVPN_PORT": "1194",
+
+  "VPC_CIDR": "172.20.0.0/16",
+  "VPC_CIDRS": {
+    "public": "172.20.3.0/24",
+    "private": "172.20.1.0/24"
+  }
+}

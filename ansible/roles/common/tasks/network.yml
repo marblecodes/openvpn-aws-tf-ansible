@@ -1,0 +1,11 @@
+- name: Set the hostname
+  become: yes
+  hostname:
+    name: "{{ hostname }}"
+
+- name: Add vpn to host file
+  become: yes
+  lineinfile:
+    dest: /etc/hosts
+    line: "{{ vpn_gateway }} vpn"
+    state: present
