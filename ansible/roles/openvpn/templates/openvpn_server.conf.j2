@@ -8,7 +8,8 @@ dh dh.pem
 server {{ ovpn_network }}
 ifconfig-pool-persist ipp.txt
 
-push "redirect-gateway def1"
+push "redirect-gateway def1 bypass-dhcp"
+
 push "dhcp-option DNS {{ vpn_gateway }}"
 {% for route in ovpn_push_routes %}
 push "route {{ route }}"
@@ -21,7 +22,6 @@ cipher AES-128-CBC
 auth SHA256
 tls-version-min 1.2
 tls-cipher TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384:TLS-ECDHE-RSA-WITH-AES-256-GCM-SHA384:TLS-DHE-RSA-WITH-AES-256-GCM-SHA384:TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA384:TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA384:TLS-DHE-RSA-WITH-AES-256-CBC-SHA256
-comp-lzo
 user nobody
 group nogroup
 persist-key

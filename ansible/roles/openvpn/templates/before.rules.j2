@@ -13,11 +13,8 @@
 *nat
 :POSTROUTING ACCEPT [0:0]
 
-# Allow traffic from OpenVPN client to eth0
--A POSTROUTING -s {{ovpn_cidr}} -o eth0 -j MASQUERADE
-
-# Allow traffic from NAT to eth0?
--A POSTROUTING -s {{vpc_cidr}} -o eth0 -j MASQUERADE
+# Allow traffic from OpenVPN client to ens5
+-A POSTROUTING -s {{ovpn_cidr}} -o ens5 -j MASQUERADE
 
 COMMIT
 # END OPENVPN RULES

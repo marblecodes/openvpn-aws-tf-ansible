@@ -20,9 +20,32 @@
     src: before.rules.j2
     dest: /etc/ufw/before.rules
 
-- name: Restart ufw
+- name: Allow OpenSSH
   become: yes
-  service:
-    name: "ufw"
-    enabled: yes
-    state: restarted
+  ufw:
+    rule: allow
+    name: OpenSSH
+
+- name: Allow DNS
+  become: yes
+  ufw:
+    rule: allow
+    port: 53
+    proto: any
+
+- name: Allow OpenVPN
+  become: yes
+  ufw:
+    rule: allow
+    port: 1194
+    proto: udp
+
+- name: Disable ufw
+  become: yes
+  ufw:
+    state: disabled
+
+- name: Enable ufw
+  become: yes
+  ufw:
+    state: enabled

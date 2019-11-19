@@ -8,7 +8,7 @@ variable "VPN_AMI" {}
 # =================================================================================
 resource "aws_security_group" "vpn_sg" {
   name   = "VPN DEFAULT SG"
-  vpc_id = "${aws_vpc.vpc.id}"
+  vpc_id = aws_vpc.vpc.id
 
   ingress {
     from_port   = 22
@@ -18,8 +18,8 @@ resource "aws_security_group" "vpn_sg" {
   }
 
   ingress {
-    from_port   = "${var.OVPN_PORT}"
-    to_port     = "${var.OVPN_PORT}"
+    from_port   = var.OVPN_PORT
+    to_port     = var.OVPN_PORT
     protocol    = "udp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -28,7 +28,7 @@ resource "aws_security_group" "vpn_sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["${aws_vpc.vpc.cidr_block}"]
+    cidr_blocks = [aws_vpc.vpc.cidr_block]
   }
 
   egress {
@@ -43,33 +43,30 @@ resource "aws_security_group" "vpn_sg" {
 # =================================================================================
 resource "aws_key_pair" "vpn_auth" {
   key_name   = "vpn"
-  public_key = "${file(var.VPN_SSH_PUBLIC_KEY)}"
+  public_key = file(var.VPN_SSH_PUBLIC_KEY)
 }
 
 # EC2 INSTANCE
 # =================================================================================
 resource "aws_instance" "vpn" {
-  instance_type = "${var.VPN_INSTANCE_TYPE}"
-  ami           = "${var.VPN_AMI}"
+  instance_type = var.VPN_INSTANCE_TYPE
+  ami           = var.VPN_AMI
 
-  tags {
+  tags = {
     Name = "vpn"
   }
 
-  key_name                    = "${aws_key_pair.vpn_auth.id}"
-  vpc_security_group_ids      = ["${aws_security_group.vpn_sg.id}"]
-  subnet_id                   = "${aws_subnet.vpc_public_subnet.id}"
+  key_name                    = aws_key_pair.vpn_auth.id
+  vpc_security_group_ids      = [aws_security_group.vpn_sg.id]
+  subnet_id                   = aws_subnet.vpc_public_subnet.id
   associate_public_ip_address = true
   source_dest_check           = false
 }
 
 # GENERATE ANSIBLE INVENTORY
 # =================================================================================
-
-resource "null_resource" "vpn_generate_inventory" {
-  provisioner "local-exec" {
-    command = <<EOD
-    cat <<EOF > ../ansible/inventory
+resource "local_file" "ansible_inventory" {
+  content = <<EOF
 [vpn_public]
 ${aws_instance.vpn.public_ip}
 
@@ -82,6 +79,6 @@ ovpn_port=${var.OVPN_PORT}
 vpc_cidr=${aws_vpc.vpc.cidr_block}
 hostname=vpn
 EOF
-EOD
-  }
+
+  filename = "${path.module}/../ansible/inventory"
 }

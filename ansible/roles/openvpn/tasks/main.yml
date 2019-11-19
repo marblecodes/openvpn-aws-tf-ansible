@@ -1,5 +1,16 @@
 ---
 - include: packages.yml
+  tags:
+    - packages
+
 - include: network.yml
+  tags:
+    - network
+
 - include: server_keys.yml
+  tags:
+    - keys
+
 - include: openvpn.yml
+  tags:
+    - openvpn
