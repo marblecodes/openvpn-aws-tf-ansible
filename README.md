@@ -25,7 +25,7 @@ aws iam get-user --profile terraform-vpn
 ### 3) Create a ssh key-pair to access the OpenVPN instance
 
 ```bash
-ssh-keygen -t rsa -C "your.email@example.com" -b 4096 `
+ssh-keygen -t rsa -C "your.email@example.com" -b 4096
 chmod 600 ~/.ssh/vpn
 ```
 
