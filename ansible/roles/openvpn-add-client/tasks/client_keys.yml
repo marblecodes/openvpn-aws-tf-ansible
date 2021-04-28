@@ -3,19 +3,11 @@
     path: "/home/ubuntu/vpn_users/{{ username }}"
     state: directory
 
-
-- name: set client CN
-  lineinfile:
-    dest: "{{ca_dir}}/easyrsa3/vars"
-    line: set_var EASYRSA_REQ_CN "{{username}}"
-    regexp: "#set_var EASYRSA_REQ_CN"
-
 - name: "Build client keys"
-  command: ./easyrsa --batch gen-req {{ username }} nopass
+  command: ./easyrsa --batch --req-cn="{{ username }}" gen-req {{ username }} nopass
   args:
     chdir: "{{ca_dir}}/easyrsa3"
     creates: "{{ca_dir}}/easyrsa3/pki/private/{{ username }}.key"
-
 
 - name: "Sign client keys"
   command: ./easyrsa --batch sign-req client {{ username }}
